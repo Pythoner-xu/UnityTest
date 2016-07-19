@@ -13,7 +13,7 @@ public class testEuler : MonoBehaviour
         Debug.Log(string.Format("{0},{1},{2}", transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z));
 
         // 设置为无旋转（rotation是一个四元数）
-        transform.rotation = Quaternion.identity;
+        //transform.rotation = Quaternion.identity;
     }
 
     // Update is called once per frame
