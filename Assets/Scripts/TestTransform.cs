@@ -4,8 +4,6 @@ using System.Collections;
 public class TestTransform : MonoBehaviour
 {
     public float snapvalue = 1f;
-    private float xRotation = 0;
-    private float yRotation = 0;
 
     public enum CoordinateType
     {
@@ -24,25 +22,90 @@ public class TestTransform : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // 欧拉角用法:Unity建议不要递增欧拉角
-        xRotation += Input.GetAxis("Horizontal") * snapvalue;
-        yRotation += Input.GetAxis("Vertical") * snapvalue;
+        //
+        float xOffset = Input.GetAxis("Horizontal") * snapvalue;
+        float yOffset = Input.GetAxis("Vertical") * snapvalue;
 
-        //xRotation = xRotation % 360;
-        //yRotation = yRotation % 360;
-
-        switch (enumCoordinateType)
+        if (Input.GetMouseButton(0))
         {
-            case CoordinateType.World:
-                // 世界欧拉角：绝对（相对于世界中心的坐标系）
-                this.transform.eulerAngles = new Vector3(yRotation, xRotation, 0);
-                break;
-            case CoordinateType.Local:
-                // 本地欧拉角：相对（相对于父节点的坐标系）
-                this.transform.localEulerAngles = new Vector3(yRotation, xRotation, 0);
-                break;
-            default:
-                break;
+            // 计算偏移旋转角          
+            Vector3 roateAngle = new Vector3(yOffset, xOffset, 0);
+
+            if (Input.GetKey(KeyCode.LeftControl))
+            {
+                // 1、欧拉角用法:Unity建议不要递增欧拉角
+                switch (this.enumCoordinateType)
+                {
+                    case CoordinateType.World:
+                        // 世界欧拉角：绝对（相对于世界中心的坐标系）
+                        this.transform.eulerAngles += roateAngle;
+                        break;
+                    case CoordinateType.Local:
+                        // 本地欧拉角：相对（相对于父节点的坐标系）
+                        this.transform.localEulerAngles += roateAngle;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                Quaternion rotation;
+                // 2、四元数用法(欧拉角转换为四元数)
+                switch (this.enumCoordinateType)
+                {
+                    case CoordinateType.World:
+                        // 绝对（相对于世界中心的坐标系）    
+                        rotation = Quaternion.Euler(this.transform.eulerAngles + roateAngle);
+                        this.transform.rotation = rotation;
+                        break;
+                    case CoordinateType.Local:
+                        // 相对（相对于父节点的坐标系）
+                        rotation = Quaternion.Euler(this.transform.localEulerAngles + roateAngle);
+                        this.transform.localRotation = rotation;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        else if (Input.GetMouseButton(1))
+        {
+            // 缩放     
+            Vector3 scale = new Vector3(xOffset, yOffset, 0);
+
+            switch (this.enumCoordinateType)
+            {
+                case CoordinateType.World:
+                    // 世界缩放（有损--相对于世界节点）
+                    // this.transform.lossyScale; // 只读的(是通过递归父节点缩放后得到的一个缩放值)
+                    break;
+                case CoordinateType.Local:
+                    // 相对缩放（相对于父节点的缩放）
+                    this.transform.localScale += scale;
+                    break;
+                default:
+                    break;
+            }
+        }
+        else
+        {
+            // 平移
+            Vector3 pos = new Vector3(xOffset, yOffset, 0);
+
+            switch (this.enumCoordinateType)
+            {
+                case CoordinateType.World:
+                    // 世界坐标（绝对坐标）
+                    this.transform.position += pos;
+                    break;
+                case CoordinateType.Local:
+                    // 相对坐标（相对于父节点坐标系）
+                    this.transform.localPosition += pos;
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -105,11 +168,12 @@ public class TestTransform : MonoBehaviour
 
 
         GUI.color = Color.green;
-        GUI.Label(new Rect(800, 30, 300, 800), string.Format("{0}, {1}", this.xRotation, this.yRotation));
         if (GUI.Button(new Rect(800, 50, 100, 20), "Reset"))
         {
-            this.xRotation = 0;
-            this.yRotation = 0;
+            this.transform.localPosition = Vector3.zero;
+            this.transform.localRotation = Quaternion.identity;
+            //this.transform.localEulerAngles = Vector3.zero;
+            this.transform.localScale = Vector3.one;
         }
 
     }
