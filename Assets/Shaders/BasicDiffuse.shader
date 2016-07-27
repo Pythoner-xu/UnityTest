@@ -40,6 +40,7 @@ Shader "Custom/BasicDiffuse" {
 		}
 	}
 
+
 	// 固定管线 fixed pipeline
 	SubShader {
 		Pass {
